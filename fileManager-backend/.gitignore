@@ -24,3 +24,4 @@ login.rest
 *.sw?
 
 uploads
+database.sqlite

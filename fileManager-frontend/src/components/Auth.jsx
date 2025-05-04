@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { login } from '../redux/slices/authSlice'
 import { useNavigate, Link } from 'react-router-dom'
 import './Auth.css'
+import { showNotification } from '../redux/notificationReducer.js'
+import { loginU } from '../redux/userReducer.js'
+import loginService from '../services/login'
 
 const Auth = ({ isLogin }) => {
   const [username, setUsername] = useState('')
@@ -12,27 +14,29 @@ const Auth = ({ isLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const endpoint = isLogin ? '/login' : '/register'
 
-    try {
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      })
 
-      const data = await response.json()
-      if (response.ok) {
-        if (isLogin) {
-          dispatch(login({ username, token: data.token }))
-          localStorage.setItem('jwtToken', data.token)
-          navigate('/dashboard')
-        } else {
-          navigate('/login')
-        }
+    if (isLogin) {
+      const success = await dispatch(loginU(username, password))
+      if (success) {
+        navigate('/dashboard')
       }
-    } catch (error) {
-      console.error('Auth error:', error)
+    } else {
+      // Registration logic
+      try {
+        const response = await loginService.register({ username, password })
+        const data = await response.json()
+
+        if (response.ok) {
+          dispatch(showNotification({ type: 'success', message: 'Registration successful! You can now log in.' }, 5))
+          navigate('/login')
+        } else {
+          dispatch(showNotification({ type: 'error', message: data.error || 'Registration failed' }, 5))
+        }
+      } catch (error) {
+        console.error('Registration error:', error)
+        dispatch(showNotification({ type: 'error', message: 'Registration failed. Please try again.' }, 5))
+      }
     }
   }
 
@@ -58,7 +62,7 @@ const Auth = ({ isLogin }) => {
         <div className="auth-switch">
           {isLogin ? (
             <span>
-              Don't have an account?{' '}
+              Dont have an account?{' '}
               <Link to="/register">Register here</Link>
             </span>
           ) : (

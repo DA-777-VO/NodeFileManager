@@ -1,12 +1,3 @@
-// const app = require('./app')
-// const config = require('./utils/config')
-// const logger = require('./utils/logger')
-//
-//
-// app.listen(config.PORT, () => {
-//   logger.info(`Server running on port ${config.PORT}`)
-// })
-
 const express = require('express')
 const sqlite3 = require('sqlite3')
 const bcrypt = require('bcryptjs')
@@ -16,27 +7,12 @@ const path = require('path')
 const cors = require('cors')
 const fs = require('fs').promises
 const fsSync = require('fs') // Добавляем синхронные методы отдельно
-// const mime = require('mime')
 const mime = require('mime-types')
 
 const app = express()
 const PORT = 5000
 const SECRET_KEY = 'your_secret_key'
-// const upload = multer({ dest: 'uploads/' })
-const upload = multer({
-  dest: 'temp/', // Временная папка для загрузок
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      'image/jpeg',
-      'application/pdf',
-      'text/plain'
-    ]
-    cb(null, allowedTypes.includes(file.mimetype));
-  }
-})
-
-
-// app.use(cors())
+const upload = multer({ dest: 'uploads/' })
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -47,11 +23,21 @@ app.use(express.json())
 app.use('/uploads', express.static('uploads'))
 
 
+// Настройка Express для работы с UTF-8
+app.use(express.json({ charset: 'utf-8' }))
+app.use(express.urlencoded({ extended: true, charset: 'utf-8' }))
 
+// Установка заголовков для всех ответов
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  next()
+})
 
 const db = new sqlite3.Database('./database.sqlite')
 
 db.serialize(() => {
+  db.run('PRAGMA encoding = "UTF-8";')
+
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,21 +62,6 @@ db.serialize(() => {
 
 })
 
-// Middleware для проверки JWT
-// const authenticateJWT = (req, res, next) => {
-//   const token = req.header('Authorization')?.split(' ')[1]
-//   if (token) {
-//     jwt.verify(token, SECRET_KEY, (err, user) => {
-//       if (err) return res.sendStatus(403)
-//       req.user = user
-//       next()
-//     })
-//   } else {
-//     res.sendStatus(401)
-//   }
-// }
-
-
 const authenticateJWT = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1] || req.query.token
 
@@ -103,7 +74,6 @@ const authenticateJWT = (req, res, next) => {
   })
 }
 
-//---
 
 const fileAuthMiddleware = (req, res, next) => {
   try {
@@ -128,9 +98,7 @@ const fileAuthMiddleware = (req, res, next) => {
 
 module.exports = fileAuthMiddleware
 
-//---
 
-// Регистрация
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body
@@ -149,7 +117,6 @@ app.post('/register', async (req, res) => {
   }
 })
 
-// Логин
 app.post('/login', async (req, res) => {
   const { username, password } = req.body
 
@@ -164,33 +131,6 @@ app.post('/login', async (req, res) => {
   })
 })
 
-// app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
-//   try {
-//     if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
-//
-//     const userDir = path.join(__dirname, 'uploads', req.user.username)
-//     const originalName = req.file.originalname
-//     const filePath = path.join(userDir, originalName)
-//
-//     // Проверка существования файла
-//     try {
-//       await fs.access(filePath)
-//       return res.status(400).json({ error: 'File already exists' })
-//     } catch (err) {} // Файл не существует - продолжаем
-//
-//     await fs.mkdir(userDir, { recursive: true })
-//     await fs.rename(req.file.path, filePath)
-//
-//     res.json({
-//       message: 'File uploaded successfully',
-//       filename: originalName
-//     })
-//   } catch (error) {
-//     console.error('Upload error:', error)
-//     res.status(500).json({ error: 'File upload failed' })
-//   }
-// })
-
 
 app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => {
   let tempFilePath = null
@@ -204,7 +144,23 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
 
     // 2. Подготовка путей
     const userDir = path.join(__dirname, 'uploads', req.user.username)
-    const originalName = req.file.originalname
+    let originalName = req.file.originalname
+
+    if (Buffer.isBuffer(originalName)) {
+      originalName = originalName.toString('utf8')
+    } else if (typeof originalName === 'string') {
+      // Убедимся, что строка правильно декодирована
+      try {
+        // Попытка декодировать, если строка закодирована в другой кодировке
+        const decoded = decodeURIComponent(escape(originalName))
+        originalName = decoded
+      } catch (e) {
+        // Если декодирование не удалось, оставляем как есть
+        console.log('Decoding filename failed, using original:', e)
+      }
+    }
+
+    console.log('Original filename:', originalName)
 
     // 3. Валидация имени файла
     if (!originalName || originalName.includes('/') || originalName.includes('\\')) {
@@ -295,19 +251,6 @@ app.post('/upload', authenticateJWT, upload.single('file'), async (req, res) => 
   }
 })
 
-
-// Эндпоинт для получения списка файлов
-// app.get('/files', authenticateJWT, async (req, res) => {
-//   try {
-//     const userDir = path.join(__dirname, 'uploads', req.user.username)
-//     const files = await fs.readdir(userDir)
-//     res.json(files)
-//   } catch (error) {
-//     console.error('Files list error:', error)
-//     res.status(500).json({ error: 'Could not list files' })
-//   }
-// })
-
 app.get('/files', authenticateJWT, (req, res) => {
   db.all(
     `SELECT filename, size, type, upload_date 
@@ -316,33 +259,17 @@ app.get('/files', authenticateJWT, (req, res) => {
     [req.user.username],
     (err, rows) => {
       if (err) return res.status(500).json({ error: 'Database error' })
+
+      const processedRows = rows.map(row => {
+        return {
+          ...row,
+          filename: Buffer.from(row.filename, 'binary').toString('utf8')
+        }
+      })
       res.json(rows)
     }
   )
 })
-
-// Эндпоинт для доступа к файлам
-// app.get('/files/:filename', authenticateJWT, async (req, res) => {
-//   try {
-//     const userDir = path.join(__dirname, 'uploads', req.user.username)
-//     const filePath = path.join(userDir, req.params.filename)
-//
-//     await fs.access(filePath)
-//
-//     if (req.query.download) {
-//       // Скачивание файла
-//       res.download(filePath, req.params.filename)
-//     } else {
-//       // Отображение файла в браузере
-//       const fileStream = fs.createReadStream(filePath)
-//       res.setHeader('Content-Type', mime.getType(filePath) || 'application/octet-stream')
-//       fileStream.pipe(res)
-//     }
-//   } catch (error) {
-//     console.error('File access error:', error)
-//     res.status(404).json({ error: 'File not found' })
-//   }
-// })
 
 app.get('/files/:filename', authenticateJWT, async (req, res) => {
   try {
@@ -355,5 +282,44 @@ app.get('/files/:filename', authenticateJWT, async (req, res) => {
     res.status(404).send('File not found')
   }
 })
+
+app.delete('/files/:filename', authenticateJWT, async (req, res) => {
+  try {
+    const userDir = path.join(__dirname, 'uploads', req.user.username)
+    const filename = req.params.filename
+    const filePath = path.join(userDir, filename)
+
+    // Удаление из базы данных
+    db.run(
+      `DELETE FROM files 
+       WHERE user_id = (SELECT id FROM users WHERE username = ?) 
+       AND filename = ?`,
+      [req.user.username, filename],
+      async function(err) {
+        if (err) {
+          console.error('Database error:', err)
+          return res.status(500).json({ error: 'Failed to delete file from database' })
+        }
+
+        if (this.changes === 0) {
+          return res.status(404).json({ error: 'File not found' })
+        }
+
+        // Удаление файла из файловой системы
+        try {
+          await fs.unlink(filePath)
+          res.status(200).json({ message: 'File deleted successfully' })
+        } catch (fsError) {
+          console.error('File deletion error:', fsError)
+          res.status(500).json({ error: 'Failed to delete file from storage' })
+        }
+      }
+    )
+  } catch (error) {
+    console.error('Delete error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
