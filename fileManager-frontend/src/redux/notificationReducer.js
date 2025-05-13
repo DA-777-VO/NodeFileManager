@@ -18,9 +18,12 @@ export const { setNotification, clearNotification } = notificationSlice.actions
 export const showNotification = (content, time) => {
   return async (dispatch) => {
     dispatch(setNotification(content))
-    setTimeout(() => {
-      dispatch(clearNotification())
-    }, time * 1000)
+    //
+    if (time > 0) {
+      setTimeout(() => {
+        dispatch(clearNotification())
+      }, time * 1000)
+    }
   }
 }
 

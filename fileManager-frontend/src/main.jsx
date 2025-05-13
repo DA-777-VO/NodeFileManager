@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import fileReducer from './redux/fileReducer'
 import notificationReducer from './redux/notificationReducer'
 import userReducer from './redux/userReducer'
+import connectionMonitor from './services/connectionMonitor'
 
 const store = configureStore({
   reducer: {
@@ -14,8 +15,13 @@ const store = configureStore({
   }
 })
 
+//
+connectionMonitor.setupConnectionMonitoring()
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <App />
   </Provider>
 )
+//
+export { store }

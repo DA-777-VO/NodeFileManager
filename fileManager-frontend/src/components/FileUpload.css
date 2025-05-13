@@ -149,3 +149,126 @@ input[type="text"] {
 .text-preview.json {
     color: #333;
 }
+
+
+
+
+
+
+.file-item {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background-color: #f0f0f0;
+}
+
+.file-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    margin-right: 8px;
+}
+
+.file-name {
+    flex-grow: 1;
+    cursor: pointer;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.file-name:hover {
+    text-decoration: underline;
+    color: #3498db;
+}
+
+.file-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.action-button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background-color 0.2s;
+}
+
+.download-button {
+    background-color: #3498db;
+    color: white;
+}
+
+.download-button:hover {
+    background-color: #2980b9;
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c0392b;
+}
+
+.file-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+.meta-item {
+    display: inline-block;
+}
+
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.upload-container {
+    background-color: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.file-list-container {
+    margin-top: 20px;
+}
+
+@media (min-width: 768px) {
+    .dashboard-container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .upload-container {
+        width: 300px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .file-list-container {
+        flex: 1;
+        margin-top: 0;
+    }
+}

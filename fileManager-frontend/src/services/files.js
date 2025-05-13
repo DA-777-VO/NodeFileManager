@@ -40,4 +40,11 @@ const getFile = async filename => {
   })
 }
 
-export default { getAll, create, setToken, update, remove, getFile }
+const downloadFile = async (filename) => {
+  return await axios.get(`${baseUrl}/files/${filename}?download=true`, {
+    ...config,
+    responseType: 'blob'
+  })
+}
+
+export default { getAll, create, setToken, update, remove, getFile, downloadFile }

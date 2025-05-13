@@ -1,42 +1,21 @@
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux'
 import { useNavigate, Link } from 'react-router-dom'
 import './Auth.css'
-import { showNotification } from '../redux/notificationReducer.js'
-import { loginU } from '../redux/userReducer.js'
-import loginService from '../services/login'
 
-const Auth = ({ isLogin }) => {
+const Auth = ({ isLogin, onSubmit }) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const dispatch = useDispatch()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    const success = await onSubmit(username, password)
 
-    if (isLogin) {
-      const success = await dispatch(loginU(username, password))
-      if (success) {
-        navigate('/dashboard')
-      }
-    } else {
-      // Registration logic
-      try {
-        const response = await loginService.register({ username, password })
-        const data = await response.json()
-
-        if (response.ok) {
-          dispatch(showNotification({ type: 'success', message: 'Registration successful! You can now log in.' }, 5))
-          navigate('/login')
-        } else {
-          dispatch(showNotification({ type: 'error', message: data.error || 'Registration failed' }, 5))
-        }
-      } catch (error) {
-        console.error('Registration error:', error)
-        dispatch(showNotification({ type: 'error', message: 'Registration failed. Please try again.' }, 5))
-      }
+    if (success && isLogin) {
+      navigate('/dashboard')
+    } else if (success && !isLogin) {
+      navigate('/login')
     }
   }
 
@@ -58,7 +37,6 @@ const Auth = ({ isLogin }) => {
         />
         <button type="submit">{isLogin ? 'Login' : 'Register'}</button>
 
-        {/* Добавляем ссылку для перехода */}
         <div className="auth-switch">
           {isLogin ? (
             <span>
