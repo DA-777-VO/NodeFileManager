@@ -1,0 +1,53 @@
+.file-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.search-section {
+    flex: 1;
+}
+
+.favorites-toggle {
+    margin-left: 15px;
+}
+
+.toggle-button {
+    padding: 8px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle-button.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.no-files-message {
+    text-align: center;
+    margin: 20px 0;
+    color: #666;
+}
+
+
+.favorite-button {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s;
+}
+
+.favorite-button.active {
+    color: #ffd700;
+    transform: scale(1.2);
+}
+
+.favorite-button:hover {
+    color: #ffd700;
+}

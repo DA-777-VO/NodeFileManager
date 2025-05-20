@@ -8,7 +8,7 @@ const FileUpload = ({
   return (
     <div className="upload-container">
       <h2>File Upload</h2>
-      <form onSubmit={(e) => { e.preventDefault(); onUpload(); }}>
+      <form onSubmit={(e) => { e.preventDefault(); onUpload() }}>
         <input type="file" onChange={onFileChange} />
         <button type="submit">Upload</button>
       </form>

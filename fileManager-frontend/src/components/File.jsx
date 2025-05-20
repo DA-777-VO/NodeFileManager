@@ -5,9 +5,9 @@ const File = ({
   file,
   onView,
   onDownload,
-  onDelete
+  onDelete,
+  onToggleFavorite,
 }) => {
-  // Helper functions
   const formatSize = (bytes) => {
     if (!bytes || isNaN(bytes)) return '0 Bytes'
     const k = 1024
@@ -22,7 +22,6 @@ const File = ({
     return parts[parts.length - 1]
   }
 
-  // Get file icon based on type
   const getFileIcon = (mimeType) => {
     if (!mimeType) return '📄'
 
@@ -47,7 +46,6 @@ const File = ({
     }
   }
 
-  // Handle view file
   const handleViewFile = async () => {
     if (file && file.filename) {
       await onView(file.filename)
@@ -66,6 +64,12 @@ const File = ({
           {file.filename || 'Unnamed File'}
         </span>
         <div className="file-actions">
+          <button
+            onClick={() => onToggleFavorite(file.filename, !file.favorite)}
+            className={`favorite-button ${file.favorite ? 'active' : ''}`}
+          >
+            {file.favorite ? '★' : '☆'}
+          </button>
           <button
             onClick={() => onDownload(file.filename)}
             className="action-button download-button"

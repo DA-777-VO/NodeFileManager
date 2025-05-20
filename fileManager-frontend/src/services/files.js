@@ -47,4 +47,13 @@ const downloadFile = async (filename) => {
   })
 }
 
-export default { getAll, create, setToken, update, remove, getFile, downloadFile }
+const toggleFavorite = async (filename, favorite) => {
+  const response = await axios.patch(
+    `${baseUrl}/files/${filename}/favorite`,
+    { favorite },
+    config
+  )
+  return response.data
+}
+
+export default { getAll, create, setToken, update, remove, getFile, downloadFile, toggleFavorite }

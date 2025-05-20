@@ -7,11 +7,12 @@ import PrivateRoute from './components/PrivateRoute.jsx'
 import Notification from './components/Notification'
 import { useDispatch, useSelector } from 'react-redux'
 import { initializeUser, loginU, logoutU } from './redux/userReducer'
-import { createFile, initializeFiles, removeFile } from './redux/fileReducer'
-import { showNotification } from './redux/notificationReducer'
+import { createFile, initializeFiles, removeFile, setFiles } from './redux/fileReducer'
+import { setNotification, showNotification } from './redux/notificationReducer'
 import fileService from './services/files'
 import loginService from './services/login'
 import Logout from './components/Logout.jsx'
+import './app.css'
 
 function App() {
   const dispatch = useDispatch()
@@ -24,13 +25,12 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileType, setSelectedFileType] = useState(null)
   const [textContent, setTextContent] = useState('')
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
-  // Initialize user on app load
   useEffect(() => {
     dispatch(initializeUser())
   }, [dispatch])
 
-  // Initialize files when user is authenticated
   useEffect(() => {
     if(user && user.token) {
       fileService.setToken(user.token)
@@ -39,9 +39,9 @@ function App() {
     }
   }, [user, dispatch])
 
+
   console.log('user: ', user)
 
-  // Authentication handlers
   const handleLogin = async (username, password) => {
     const success = await dispatch(loginU(username, password))
     return success
@@ -51,7 +51,9 @@ function App() {
     try {
       const response = await loginService.register({ username, password })
 
-      if (response.ok) {
+      console.log('response: ', response)
+
+      if (response.id) {
         dispatch(showNotification({ type: 'success', message: 'Registration successful! You can now log in.' }, 5))
         return true
       } else {
@@ -69,7 +71,6 @@ function App() {
     dispatch(logoutU())
   }
 
-  // File management handlers
   const handleFileUpload = async (fileToUpload) => {
     if (!fileToUpload) {
       dispatch(showNotification({ type: 'error', message: 'Please select a file to upload' }, 5))
@@ -153,12 +154,10 @@ function App() {
           const fileType = allowedExtensions[fileExtension]
 
           if (fileType === 'text') {
-            // For text files, read the content as text
             const reader = new FileReader()
             reader.onload = (e) => {
               let content = e.target.result
 
-              // Format JSON if the file is JSON
               if (fileExtension === 'json') {
                 try {
                   const jsonObj = JSON.parse(content)
@@ -174,7 +173,6 @@ function App() {
             }
             reader.readAsText(response.data)
           } else {
-            // For images and videos, create a blob URL
             const url = URL.createObjectURL(response.data)
             setSelectedImage(url)
             setSelectedFileType(fileType)
@@ -200,11 +198,28 @@ function App() {
     }
   }
 
-  // Filter files based on search query
+
+  const handleToggleFavorite = async (filename, favorite) => {
+    try {
+      await fileService.toggleFavorite(filename, favorite)
+      const updatedFiles = filesListS.map(file =>
+        file.filename === filename
+          ? { ...file, favorite }
+          : file
+      )
+      dispatch(setFiles(updatedFiles))
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      dispatch(setNotification('Error updating favorite status', 'error'))
+    }
+  }
+
   const filteredFiles = filesListS
     ? filesListS.filter(file => {
       const filename = file.filename || ''
-      return filename.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesSearch = filename.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesFavorite = showFavoritesOnly ? file.favorite : true
+      return matchesSearch && matchesFavorite
     })
     : []
 
@@ -239,34 +254,54 @@ function App() {
                   onUpload={() => handleFileUpload(file)}
                 />
 
-                {/* File List and Search Section */}
                 <div className="file-list-container">
-                  <h3>Search</h3>
-                  <input
-                    type="text"
-                    placeholder="Search files..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                  <div className="file-controls">
+                    <div className="search-section">
+                      <h3>Search</h3>
+                      <input
+                        type="text"
+                        placeholder="Search files..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
 
-                  <h3>Your Files:</h3>
+                    <div className="favorites-toggle">
+                      <button
+                        className={`toggle-button ${showFavoritesOnly ? 'active' : ''}`}
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                      >
+                        {showFavoritesOnly ? 'Show All Files' : 'Show Favorites Only'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <h3>{showFavoritesOnly ? 'Your Favorite Files:' : 'Your Files:'}</h3>
 
                   {isLoading ? (
                     <div className="loading-status">Loading files...</div>
                   ) : (
-                    filteredFiles.map(file => (
-                      <File
-                        key={file.filename || 'unknown'}
-                        file={file}
-                        onView={handleFileView}
-                        onDownload={handleFileDownload}
-                        onDelete={handleFileDelete}
-                      />
-                    ))
+                    filteredFiles.length > 0 ? (
+                      filteredFiles.map(file => (
+                        <File
+                          key={file.filename || 'unknown'}
+                          file={file}
+                          onView={handleFileView}
+                          onDownload={handleFileDownload}
+                          onDelete={handleFileDelete}
+                          onToggleFavorite={handleToggleFavorite}
+                        />
+                      ))
+                    ) : (
+                      <div className="no-files-message">
+                        {showFavoritesOnly
+                          ? 'No favorite files found. Mark some files as favorites!'
+                          : 'No files found.'}
+                      </div>
+                    )
                   )}
                 </div>
 
-                {/* Modal Window */}
                 {isModalOpen && (
                   <div className="image-modal">
                     <div className="modal-content">
