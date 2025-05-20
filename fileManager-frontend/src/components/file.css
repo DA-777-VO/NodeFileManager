@@ -1,0 +1,190 @@
+/* Apple-style CSS for File component */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --file-background: #ffffff;
+  --file-hover-background: #f5f5f7;
+  --file-border: rgba(210, 210, 215, 0.5);
+  --file-text: #1d1d1f;
+  --file-meta-text: #86868b;
+  --file-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --file-radius: 10px;
+  --file-icon-size: 48px;
+  --file-primary: #0071e3;
+  --file-destructive: #ff3b30;
+  --file-favorite: #ffd60a;
+  --file-transition: all 0.2s ease;
+}
+
+/* File Grid Layout */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* File Item Card */
+.file-item {
+  background-color: var(--file-background);
+  border-radius: var(--file-radius);
+  border: 1px solid var(--file-border);
+  padding: 16px;
+  transition: var(--file-transition);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: var(--file-shadow);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.file-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 113, 227, 0.2);
+}
+
+/* File Icon */
+.file-icon {
+  font-size: var(--file-icon-size);
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+/* File Name */
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--file-text);
+  text-align: center;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* File Meta Information */
+.file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--file-meta-text);
+}
+
+.meta-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* File Actions */
+.file-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: var(--file-transition);
+}
+
+.file-item:hover .file-actions {
+  opacity: 1;
+}
+
+/* Action Buttons */
+.action-button {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--file-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--file-transition);
+  backdrop-filter: blur(4px);
+}
+
+.download-button {
+  color: var(--file-primary);
+}
+
+.download-button:hover {
+  background-color: rgba(0, 113, 227, 0.1);
+}
+
+.delete-button {
+  color: var(--file-destructive);
+}
+
+.delete-button:hover {
+  background-color: rgba(255, 59, 48, 0.1);
+}
+
+/* Favorite Button */
+.favorite-button {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #d1d1d6;
+  transition: var(--file-transition);
+  z-index: 2;
+}
+
+.favorite-button.active {
+  color: var(--file-favorite);
+}
+
+.favorite-button:hover {
+  transform: scale(1.1);
+}
+
+/* Action Menu (for mobile) */
+.action-menu {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .file-icon {
+    font-size: 36px;
+  }
+
+  .file-name {
+    font-size: 13px;
+  }
+
+  .file-meta {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+  }
+
+  .file-actions {
+    display: none;
+  }
+
+  .action-menu {
+    display: block;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+}
