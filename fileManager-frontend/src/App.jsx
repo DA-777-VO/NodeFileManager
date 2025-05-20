@@ -25,7 +25,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileType, setSelectedFileType] = useState(null)
   const [textContent, setTextContent] = useState('')
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [activeCategory, setActiveCategory] = useState('all') // 'all', 'favorites', 'images', 'documents', 'videos', 'audio'
 
   useEffect(() => {
     dispatch(initializeUser())
@@ -214,12 +214,43 @@ function App() {
     }
   }
 
+
+  const getFileCategory = (file) => {
+    if (!file.type) return 'other'
+
+    const type = file.type.split('/')[0]
+    const extension = (file.filename || '').split('.').pop().toLowerCase()
+
+    if (type === 'image' || ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
+      return 'images'
+    } else if (type === 'video' || ['mp4', 'webm', 'mov', 'avi'].includes(extension)) {
+      return 'videos'
+    } else if (type === 'audio' || ['mp3', 'wav', 'ogg', 'flac'].includes(extension)) {
+      return 'audio'
+    } else if (type === 'text' || type === 'application' ||
+              ['txt', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'json', 'md'].includes(extension)) {
+      return 'documents'
+    }
+    return 'other'
+  }
+
+
   const filteredFiles = filesListS
     ? filesListS.filter(file => {
       const filename = file.filename || ''
+
       const matchesSearch = filename.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesFavorite = showFavoritesOnly ? file.favorite : true
-      return matchesSearch && matchesFavorite
+
+
+      const matchesFavorite = activeCategory === 'favorites' ? file.favorite : true
+
+
+      let matchesCategory = true
+      if (['images', 'documents', 'videos', 'audio'].includes(activeCategory)) {
+        matchesCategory = getFileCategory(file) === activeCategory
+      }
+
+      return matchesSearch && matchesFavorite && matchesCategory
     })
     : []
 
@@ -248,60 +279,127 @@ function App() {
           <Route path="/dashboard" element={
             <PrivateRoute>
               <div className="dashboard-container">
-                <Logout username={user?.username} onLogout={handleLogout} />
-                <FileUpload
-                  onFileChange={(e) => setFile(e.target.files[0])}
-                  onUpload={() => handleFileUpload(file)}
-                />
-
-                <div className="file-list-container">
-                  <div className="file-controls">
-                    <div className="search-section">
-                      <h3>Search</h3>
-                      <input
-                        type="text"
-                        placeholder="Search files..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="favorites-toggle">
-                      <button
-                        className={`toggle-button ${showFavoritesOnly ? 'active' : ''}`}
-                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                {/* Sidebar */}
+                <div className="dashboard-sidebar">
+                  <div className="sidebar-section">
+                    <h3 className="sidebar-title">Locations</h3>
+                    <ul className="sidebar-menu">
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'all' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('all')}
                       >
-                        {showFavoritesOnly ? 'Show All Files' : 'Show Favorites Only'}
-                      </button>
-                    </div>
+                        <span className="sidebar-menu-icon">📁</span>
+                        All Files
+                      </li>
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'favorites' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('favorites')}
+                      >
+                        <span className="sidebar-menu-icon">⭐</span>
+                        Favorites
+                      </li>
+                    </ul>
                   </div>
 
-                  <h3>{showFavoritesOnly ? 'Your Favorite Files:' : 'Your Files:'}</h3>
+                  <div className="sidebar-section">
+                    <h3 className="sidebar-title">Categories</h3>
+                    <ul className="sidebar-menu">
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'images' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('images')}
+                      >
+                        <span className="sidebar-menu-icon">🖼️</span>
+                        Images
+                      </li>
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'documents' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('documents')}
+                      >
+                        <span className="sidebar-menu-icon">📄</span>
+                        Documents
+                      </li>
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'videos' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('videos')}
+                      >
+                        <span className="sidebar-menu-icon">🎬</span>
+                        Videos
+                      </li>
+                      <li
+                        className={`sidebar-menu-item ${activeCategory === 'audio' ? 'active' : ''}`}
+                        onClick={() => setActiveCategory('audio')}
+                      >
+                        <span className="sidebar-menu-icon">🎵</span>
+                        Audio
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Header */}
+                <div className="dashboard-header">
+                  <div className="search-section">
+                    <input
+                      className="search-input"
+                      type="text"
+                      placeholder="Search files..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+
+                  <Logout username={user?.username} onLogout={handleLogout} />
+                </div>
+
+                {/* Main Content */}
+                <div className="dashboard-content">
+                  <FileUpload
+                    onFileChange={(e) => setFile(e.target.files[0])}
+                    onUpload={() => handleFileUpload(file)}
+                  />
+
+                  <div className="file-controls">
+                    <div className="search-section">
+                      <h3>
+                        {activeCategory === 'all' && 'Your Files'}
+                        {activeCategory === 'favorites' && 'Your Favorite Files'}
+                        {activeCategory === 'images' && 'Your Images'}
+                        {activeCategory === 'documents' && 'Your Documents'}
+                        {activeCategory === 'videos' && 'Your Videos'}
+                        {activeCategory === 'audio' && 'Your Audio Files'}
+                      </h3>
+                    </div>
+                  </div>
 
                   {isLoading ? (
                     <div className="loading-status">Loading files...</div>
                   ) : (
                     filteredFiles.length > 0 ? (
-                      filteredFiles.map(file => (
-                        <File
-                          key={file.filename || 'unknown'}
-                          file={file}
-                          onView={handleFileView}
-                          onDownload={handleFileDownload}
-                          onDelete={handleFileDelete}
-                          onToggleFavorite={handleToggleFavorite}
-                        />
-                      ))
+                      <div className="file-grid">
+                        {filteredFiles.map(file => (
+                          <File
+                            key={file.filename || 'unknown'}
+                            file={file}
+                            onView={handleFileView}
+                            onDownload={handleFileDownload}
+                            onDelete={handleFileDelete}
+                            onToggleFavorite={handleToggleFavorite}
+                          />
+                        ))}
+                      </div>
                     ) : (
                       <div className="no-files-message">
-                        {showFavoritesOnly
+                        {activeCategory === 'favorites'
                           ? 'No favorite files found. Mark some files as favorites!'
-                          : 'No files found.'}
+                          : activeCategory === 'all'
+                            ? 'No files found. Upload some files to get started!'
+                            : `No ${activeCategory} found. Upload some ${activeCategory} to get started!`}
                       </div>
                     )
                   )}
                 </div>
 
+                {/* Modal Window */}
                 {isModalOpen && (
                   <div className="image-modal">
                     <div className="modal-content">

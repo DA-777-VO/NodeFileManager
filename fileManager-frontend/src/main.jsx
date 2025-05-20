@@ -15,6 +15,7 @@ const store = configureStore({
   }
 })
 
+//
 connectionMonitor.setupConnectionMonitoring()
 
 ReactDOM.createRoot(document.getElementById('root')).render(

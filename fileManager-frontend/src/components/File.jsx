@@ -1,5 +1,5 @@
 import React from 'react'
-import './FileUpload.css' // Reusing existing styles
+import './file.css'
 
 const File = ({
   file,
@@ -53,38 +53,22 @@ const File = ({
   }
 
   return (
-    <div className="file-item">
-      <div className="file-header">
-        <span className="file-icon">{getFileIcon(file.type)}</span>
-        <span
-          className="file-name"
-          onClick={handleViewFile}
-          title="Click to view file"
-        >
-          {file.filename || 'Unnamed File'}
-        </span>
-        <div className="file-actions">
-          <button
-            onClick={() => onToggleFavorite(file.filename, !file.favorite)}
-            className={`favorite-button ${file.favorite ? 'active' : ''}`}
-          >
-            {file.favorite ? '★' : '☆'}
-          </button>
-          <button
-            onClick={() => onDownload(file.filename)}
-            className="action-button download-button"
-            title="Download file"
-          >
-            Download
-          </button>
-          <button
-            onClick={() => onDelete(file.filename)}
-            className="action-button delete-button"
-            title="Delete file"
-          >
-            Delete
-          </button>
-        </div>
+    <div className="file-item" onClick={handleViewFile}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggleFavorite(file.filename, !file.favorite)
+        }}
+        className={`favorite-button ${file.favorite ? 'active' : ''}`}
+        title={file.favorite ? 'Remove from favorites' : 'Add to favorites'}
+      >
+        {file.favorite ? '★' : '☆'}
+      </button>
+
+      <div className="file-icon">{getFileIcon(file.type)}</div>
+
+      <div className="file-name" title={file.filename}>
+        {file.filename || 'Unnamed File'}
       </div>
 
       <div className="file-meta">
@@ -92,11 +76,31 @@ const File = ({
           <strong>Size:</strong> {formatSize(file.size)}
         </span>
         <span className="meta-item">
-          <strong>Type:</strong> {formatFileType(file.type) || 'Unknown'}
+          <strong>Type:</strong> {formatFileType(file.type)}
         </span>
-        <span className="meta-item">
-          <strong>Uploaded:</strong> {new Date(file.upload_date).toLocaleDateString()}
-        </span>
+      </div>
+
+      <div className="file-actions">
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDownload(file.filename)
+          }}
+          className="action-button download-button"
+          title="Download file"
+        >
+          Download
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(file.filename)
+          }}
+          className="action-button delete-button"
+          title="Delete file"
+        >
+          Delete
+        </button>
       </div>
     </div>
   )
