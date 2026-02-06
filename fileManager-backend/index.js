@@ -28,8 +28,6 @@ app.use('/', filesRouter)
 
 
 app.use(middleware.requestLogger)
-
-// app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
 
 app.use(express.json({ charset: 'utf-8' }))
@@ -63,8 +61,6 @@ db.serialize(() => {
     FOREIGN KEY(user_id) REFERENCES users(id)
   )
 `)
-
-  // Создание индекса после таблиц
   db.run('CREATE INDEX IF NOT EXISTS idx_user_files ON files(user_id)')
 
 })
