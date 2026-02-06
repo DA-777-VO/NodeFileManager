@@ -1,4 +1,3 @@
-/* Apple-style CSS for FileUpload component */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
@@ -133,7 +132,6 @@
   height: 16px;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .upload-container {
     padding: 16px;

@@ -36,7 +36,7 @@ const remove = async filename => {
 const getFile = async filename => {
   return await axios.get(`${baseUrl}/files/${filename}`, {
     ...config,
-    responseType: 'blob' // Важно: указываем тип ответа как blob
+    responseType: 'blob'
   })
 }
 

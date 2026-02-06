@@ -193,7 +193,7 @@ function App() {
     } else {
       dispatch(showNotification({
         type: 'info',
-        message: 'Этот тип файла нельзя просмотреть. Нажмите "Скачать" для загрузки файла.'
+        message: 'Этот тип файла нельзя просмотреть. Нажмите "Download" для загрузки файла.'
       }, 5))
     }
   }
@@ -336,7 +336,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* Header */}
                 <div className="dashboard-header">
                   <div className="search-section">
                     <input
@@ -351,7 +350,6 @@ function App() {
                   <Logout username={user?.username} onLogout={handleLogout} />
                 </div>
 
-                {/* Main Content */}
                 <div className="dashboard-content">
                   <FileUpload
                     onFileChange={(e) => setFile(e.target.files[0])}

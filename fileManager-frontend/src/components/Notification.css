@@ -58,7 +58,6 @@
   color: var(--notification-info);
 }
 
-/* Адаптивность для мобильных устройств */
 @media (max-width: 480px) {
   .notification {
     top: 12px;
@@ -68,7 +67,7 @@
     min-width: 0;
     padding: 12px;
   }
-  
+
   .notification-content {
     font-size: 14px;
   }
